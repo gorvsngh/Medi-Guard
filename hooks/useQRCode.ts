@@ -89,6 +89,11 @@ export function useQRCode(text: string, options: QRCodeOptions = {}) {
       throw new Error('No QR code available to download');
     }
 
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      throw new Error('Download functionality is only available in the browser');
+    }
+
     try {
       // Create a temporary link element
       const link = document.createElement('a');
@@ -108,6 +113,11 @@ export function useQRCode(text: string, options: QRCodeOptions = {}) {
   const downloadQRCodeSVG = useCallback(async (filename: string = 'medguard-qr-code') => {
     if (!state.svg) {
       throw new Error('No SVG QR code available to download');
+    }
+
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      throw new Error('Download functionality is only available in the browser');
     }
 
     try {
@@ -136,6 +146,11 @@ export function useQRCode(text: string, options: QRCodeOptions = {}) {
   const copyToClipboard = useCallback(async () => {
     if (!text) {
       throw new Error('No text available to copy');
+    }
+
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      throw new Error('Copy functionality is only available in the browser');
     }
 
     try {
