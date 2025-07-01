@@ -4,6 +4,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+import ContactsModal from '@/components/ContactsModal';
 
 // Extend the User interface to include all profile fields
 interface ExtendedUser {
@@ -33,6 +34,7 @@ export default function ProfilePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showContactsModal, setShowContactsModal] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -166,6 +168,14 @@ export default function ProfilePage() {
     });
   };
 
+  // Handle contacts updated from modal
+  const handleContactsUpdated = (contacts: any[]) => {
+    setFormData(prev => ({
+      ...prev,
+      emergencyContacts: contacts
+    }));
+  };
+
   // Submit form
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -198,8 +208,10 @@ export default function ProfilePage() {
           text: 'Profile updated successfully!',
         });
         
-        // Update auth context
-        // This would typically happen automatically if your auth provider refreshes on changes
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setMessage({ type: '', text: '' });
+        }, 3000);
       } else {
         setMessage({
           type: 'error',
@@ -219,9 +231,9 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="loading-overlay">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center space-y-4">
-          <div className="w-12 h-12 spinner mx-auto"></div>
+          <div className="w-12 h-12 border-4 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-gray-600">Loading your profile...</p>
         </div>
       </div>
@@ -235,34 +247,44 @@ export default function ProfilePage() {
   const completionPercentage = calculateCompletion();
 
   return (
-    <div className="min-h-screen bg-gradient-primary">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-soft">
-        <div className="container-width">
-          <div className="flex items-center justify-between py-6">
-            <Link href="/dashboard" className="inline-flex items-center space-x-3 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110">
-                <span className="text-white text-xl">🛡️</span>
+      <header className="bg-white shadow-sm sticky top-0 z-40 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16 lg:h-20">
+            {/* Logo Section */}
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gray-900 rounded-xl flex items-center justify-center">
+                <span className="text-white text-lg lg:text-xl font-bold">🛡️</span>
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">MedGuard</h1>
-                <p className="text-sm text-gray-600">Medical Profile</p>
+              <div className="hidden sm:block">
+                <h1 className="text-xl lg:text-2xl font-bold text-gray-900">MedGuard</h1>
+                <p className="text-xs lg:text-sm text-gray-600">Medical Profile</p>
               </div>
-            </Link>
-            <Link href="/dashboard" className="btn-secondary">
-              ← Back to Dashboard
-            </Link>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center">
+              <Link href="/dashboard" className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02]">
+                ← Back to Dashboard
+              </Link>
+            </div>
+
+            {/* Mobile - Simple title */}
+            <div className="lg:hidden">
+              <h2 className="text-lg font-semibold text-gray-900">Profile</h2>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container-width py-12 space-y-8">
-        {/* Page Header */}
-        <div className="text-center space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 space-y-6 sm:space-y-8 lg:space-y-12 pb-20 lg:pb-0">
+        {/* Page Header - Desktop */}
+        <div className="hidden lg:block text-center space-y-6">
           <div className="space-y-3">
             <h2 className="text-4xl font-bold text-gray-900">
-              Complete Your <span className="text-gradient">Medical Profile</span>
+              Complete Your <span className="text-gray-900">Medical Profile</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Help first responders save your life by providing critical medical information
@@ -273,11 +295,30 @@ export default function ProfilePage() {
           <div className="max-w-md mx-auto">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Profile Completion</span>
-              <span className="text-sm font-bold text-red-600">{completionPercentage}%</span>
+              <span className="text-sm font-bold text-gray-900">{completionPercentage}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div 
-                className="bg-gradient-to-r from-red-500 to-red-600 h-3 rounded-full transition-all duration-500 ease-out"
+                className="bg-gray-900 h-3 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${completionPercentage}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Header - Simple */}
+        <div className="lg:hidden text-center space-y-4">
+          <h2 className="text-2xl font-bold text-gray-900">
+            Medical Profile
+          </h2>
+          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Completion</span>
+              <span className="text-sm font-bold text-gray-900">{completionPercentage}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-gray-900 h-2 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${completionPercentage}%` }}
               ></div>
             </div>
@@ -286,13 +327,13 @@ export default function ProfilePage() {
 
         {/* Alert Message */}
         {message.text && (
-          <div className={`card animate-slideIn ${
+          <div className={`bg-white rounded-xl p-4 shadow-sm border-2 transform transition-all duration-300 ease-out ${
             message.type === 'error' 
-              ? 'bg-red-50 border-red-200' 
-              : 'bg-green-50 border-green-200'
+              ? 'border-red-200 bg-red-50' 
+              : 'border-green-200 bg-green-50'
           }`}>
             <div className="flex items-center space-x-3">
-              <span className="text-2xl">
+              <span className="text-lg">
                 {message.type === 'error' ? '❌' : '✅'}
               </span>
               <p className={`font-medium ${
@@ -304,22 +345,22 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6 lg:space-y-8">
           {/* Personal Information */}
-          <div className="card space-y-6">
-            <div className="flex items-center space-x-3 pb-4 border-b border-gray-100">
-              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                <span className="text-blue-600 text-xl">👤</span>
+          <div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8 shadow-sm border border-gray-100">
+            <div className="flex items-center space-x-3 pb-4 border-b border-gray-100 mb-6">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                <span className="text-gray-600 text-lg sm:text-xl">👤</span>
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">Personal Information</h3>
-                <p className="text-gray-600">Basic details for emergency identification</p>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Personal Information</h3>
+                <p className="text-sm text-gray-600">Basic details for emergency identification</p>
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="form-group">
-                <label htmlFor="name" className="form-label">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+              <div className="space-y-2">
+                <label htmlFor="name" className="text-sm font-medium text-gray-700">
                   Full Name *
                 </label>
                 <input
@@ -328,14 +369,14 @@ export default function ProfilePage() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="form-input"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all duration-200 text-base"
                   placeholder="Enter your full name"
                   required
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="bloodType" className="form-label">
+              <div className="space-y-2">
+                <label htmlFor="bloodType" className="text-sm font-medium text-gray-700">
                   Blood Type *
                 </label>
                 <select
@@ -343,7 +384,7 @@ export default function ProfilePage() {
                   name="bloodType"
                   value={formData.bloodType}
                   onChange={handleChange}
-                  className="form-input"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all duration-200 text-base"
                   required
                 >
                   <option value="">Select Blood Type</option>
@@ -358,22 +399,22 @@ export default function ProfilePage() {
           </div>
 
           {/* Medical Information */}
-          <div className="card space-y-6">
-            <div className="flex items-center space-x-3 pb-4 border-b border-gray-100">
-              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                <span className="text-red-600 text-xl">🏥</span>
+          <div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8 shadow-sm border border-gray-100">
+            <div className="flex items-center space-x-3 pb-4 border-b border-gray-100 mb-6">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                <span className="text-gray-600 text-lg sm:text-xl">🏥</span>
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">Medical Information</h3>
-                <p className="text-gray-600">Critical health details for emergency care</p>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Medical Information</h3>
+                <p className="text-sm text-gray-600">Critical health details for emergency care</p>
               </div>
             </div>
 
             {/* Allergies */}
-            <div className="space-y-4">
+            <div className="space-y-4 mb-8">
               <div className="flex items-center space-x-2">
                 <span className="text-lg">⚠️</span>
-                <h4 className="text-lg font-medium text-gray-900">Allergies</h4>
+                <h4 className="text-base sm:text-lg font-medium text-gray-900">Allergies</h4>
               </div>
               {formData.allergies.map((allergy, index) => (
                 <div key={`allergy-${index}`} className="flex items-center space-x-3">
@@ -382,23 +423,23 @@ export default function ProfilePage() {
                     value={allergy}
                     onChange={(e) => handleArrayChange(e, index, 'allergies')}
                     placeholder="e.g., Penicillin, Peanuts, Shellfish"
-                    className="form-input flex-1"
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all duration-200 text-base"
                   />
                   <button
                     type="button"
                     onClick={() => handleRemoveItem(index, 'allergies')}
-                    className="w-10 h-10 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center transition-colors"
+                    className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl flex items-center justify-center transition-all duration-200 disabled:opacity-50"
                     disabled={formData.allergies.length === 1}
                   >
-                    −
+                    <span className="text-lg">−</span>
                   </button>
                   {index === formData.allergies.length - 1 && (
                     <button
                       type="button"
                       onClick={() => handleAddItem('allergies')}
-                      className="w-10 h-10 bg-green-100 hover:bg-green-200 text-green-600 rounded-lg flex items-center justify-center transition-colors"
+                      className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-900 hover:bg-gray-800 text-white rounded-xl flex items-center justify-center transition-all duration-200 transform hover:scale-[1.05]"
                     >
-                      +
+                      <span className="text-lg">+</span>
                     </button>
                   )}
                 </div>
@@ -406,10 +447,10 @@ export default function ProfilePage() {
             </div>
 
             {/* Medical Conditions */}
-            <div className="space-y-4">
+            <div className="space-y-4 mb-8">
               <div className="flex items-center space-x-2">
                 <span className="text-lg">🩺</span>
-                <h4 className="text-lg font-medium text-gray-900">Medical Conditions</h4>
+                <h4 className="text-base sm:text-lg font-medium text-gray-900">Medical Conditions</h4>
               </div>
               {formData.conditions.map((condition, index) => (
                 <div key={`condition-${index}`} className="flex items-center space-x-3">
@@ -418,23 +459,23 @@ export default function ProfilePage() {
                     value={condition}
                     onChange={(e) => handleArrayChange(e, index, 'conditions')}
                     placeholder="e.g., Diabetes, Asthma, Heart Disease"
-                    className="form-input flex-1"
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all duration-200 text-base"
                   />
                   <button
                     type="button"
                     onClick={() => handleRemoveItem(index, 'conditions')}
-                    className="w-10 h-10 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center transition-colors"
+                    className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl flex items-center justify-center transition-all duration-200 disabled:opacity-50"
                     disabled={formData.conditions.length === 1}
                   >
-                    −
+                    <span className="text-lg">−</span>
                   </button>
                   {index === formData.conditions.length - 1 && (
                     <button
                       type="button"
                       onClick={() => handleAddItem('conditions')}
-                      className="w-10 h-10 bg-green-100 hover:bg-green-200 text-green-600 rounded-lg flex items-center justify-center transition-colors"
+                      className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-900 hover:bg-gray-800 text-white rounded-xl flex items-center justify-center transition-all duration-200 transform hover:scale-[1.05]"
                     >
-                      +
+                      <span className="text-lg">+</span>
                     </button>
                   )}
                 </div>
@@ -445,7 +486,7 @@ export default function ProfilePage() {
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <span className="text-lg">💊</span>
-                <h4 className="text-lg font-medium text-gray-900">Current Medications</h4>
+                <h4 className="text-base sm:text-lg font-medium text-gray-900">Current Medications</h4>
               </div>
               {formData.medications.map((medication, index) => (
                 <div key={`medication-${index}`} className="flex items-center space-x-3">
@@ -454,23 +495,23 @@ export default function ProfilePage() {
                     value={medication}
                     onChange={(e) => handleArrayChange(e, index, 'medications')}
                     placeholder="e.g., Insulin, Lisinopril, Metformin"
-                    className="form-input flex-1"
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all duration-200 text-base"
                   />
                   <button
                     type="button"
                     onClick={() => handleRemoveItem(index, 'medications')}
-                    className="w-10 h-10 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center transition-colors"
+                    className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl flex items-center justify-center transition-all duration-200 disabled:opacity-50"
                     disabled={formData.medications.length === 1}
                   >
-                    −
+                    <span className="text-lg">−</span>
                   </button>
                   {index === formData.medications.length - 1 && (
                     <button
                       type="button"
                       onClick={() => handleAddItem('medications')}
-                      className="w-10 h-10 bg-green-100 hover:bg-green-200 text-green-600 rounded-lg flex items-center justify-center transition-colors"
+                      className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-900 hover:bg-gray-800 text-white rounded-xl flex items-center justify-center transition-all duration-200 transform hover:scale-[1.05]"
                     >
-                      +
+                      <span className="text-lg">+</span>
                     </button>
                   )}
                 </div>
@@ -479,138 +520,77 @@ export default function ProfilePage() {
           </div>
 
           {/* Emergency Contacts */}
-          <div className="card space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+          <div className="bg-white rounded-xl p-4 sm:p-6 lg:p-8 shadow-sm border border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-gray-100 mb-6 space-y-3 sm:space-y-0">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                  <span className="text-green-600 text-xl">📞</span>
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                  <span className="text-gray-600 text-lg sm:text-xl">📞</span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Emergency Contacts</h3>
-                  <p className="text-gray-600">Manage your emergency contacts</p>
+                  <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Emergency Contacts</h3>
+                  <p className="text-sm text-gray-600">{formData.emergencyContacts.filter(c => c.name.trim()).length} contact{formData.emergencyContacts.filter(c => c.name.trim()).length !== 1 ? 's' : ''} added</p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => handleAddItem('emergencyContacts')}
-                className="btn-secondary group"
+                onClick={() => setShowContactsModal(true)}
+                className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2.5 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2 transform hover:scale-[1.02]"
               >
-                <span className="mr-2">➕</span>
-                Add Contact
+                <span>📞</span>
+                <span>Manage Contacts</span>
               </button>
             </div>
 
-            <div className="space-y-4">
-              {formData.emergencyContacts.map((contact, index) => (
-                <div key={`contact-${index}`} className="bg-gray-50 rounded-xl p-6 transition-all hover:bg-gray-100">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-500 rounded-xl flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">
-                          {contact.name ? contact.name.charAt(0).toUpperCase() : '👤'}
-                        </span>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900 flex items-center space-x-2">
-                          <span>{contact.name || 'New Contact'}</span>
-                          {index === 0 && <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">Primary</span>}
+            {/* Contacts Summary */}
+            {formData.emergencyContacts.filter(c => c.name.trim()).length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {formData.emergencyContacts.filter(c => c.name.trim()).map((contact, index) => (
+                  <div key={index} className="bg-gray-50 rounded-xl p-4 flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gray-200 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <span className="text-gray-700 font-bold text-sm">
+                        {contact.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2">
+                        <h4 className="font-medium text-gray-900 text-sm truncate">
+                          {contact.name}
                         </h4>
-                        <p className="text-gray-600 text-sm">{contact.relationship || 'No relationship specified'}</p>
+                        {index === 0 && (
+                          <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full flex-shrink-0">
+                            Primary
+                          </span>
+                        )}
                       </div>
-                    </div>
-                    {formData.emergencyContacts.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(index, 'emergencyContacts')}
-                        className="text-gray-400 hover:text-red-600 transition-colors p-2"
-                        title="Remove contact"
-                      >
-                        🗑️
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">Full Name</label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={contact.name}
-                        onChange={(e) => handleChange(e, index, 'emergencyContacts')}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                        placeholder="Enter full name"
-                        required={index === 0}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">Phone Number</label>
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={contact.phone}
-                        onChange={(e) => handleChange(e, index, 'emergencyContacts')}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                        placeholder="+1 (555) 123-4567"
-                        required={index === 0}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">Relationship</label>
-                      <input
-                        type="text"
-                        name="relationship"
-                        value={contact.relationship}
-                        onChange={(e) => handleChange(e, index, 'emergencyContacts')}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                        placeholder="e.g., Spouse, Parent, Friend"
-                        required={index === 0}
-                      />
+                      <p className="text-gray-600 text-xs truncate">
+                        {contact.relationship} • {contact.phone}
+                      </p>
                     </div>
                   </div>
-
-                  {contact.phone && (
-                    <div className="mt-4 flex items-center space-x-3">
-                      <a 
-                        href={`tel:${contact.phone}`}
-                        className="inline-flex items-center space-x-2 text-green-600 hover:text-green-700 font-medium text-sm"
-                      >
-                        <span>📱</span>
-                        <span>Call {contact.name}</span>
-                      </a>
-                      <a 
-                        href={`sms:${contact.phone}`}
-                        className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 font-medium text-sm"
-                      >
-                        <span>💬</span>
-                        <span>Text</span>
-                      </a>
-                    </div>
-                  )}
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 space-y-3">
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-gray-400 text-xl">📞</span>
                 </div>
-              ))}
-
-              {formData.emergencyContacts.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <span className="text-4xl mb-4 block">📞</span>
-                  <p>No emergency contacts added yet</p>
-                  <p className="text-sm">Add at least one contact for emergencies</p>
+                <div>
+                  <h4 className="font-medium text-gray-900">No contacts added yet</h4>
+                  <p className="text-gray-600 text-sm">Add emergency contacts to help first responders</p>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* Security Notice */}
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6">
+          {/* Security Notice - Desktop only */}
+          <div className="hidden lg:block bg-gray-50 border border-gray-200 rounded-xl p-6">
             <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                <span className="text-amber-600 text-2xl">🔒</span>
+              <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span className="text-gray-600 text-2xl">🔒</span>
               </div>
               <div className="space-y-2">
-                <h4 className="font-semibold text-amber-800">Privacy & Security</h4>
-                <p className="text-amber-700 leading-relaxed">
+                <h4 className="font-semibold text-gray-900">Privacy & Security</h4>
+                <p className="text-gray-700 leading-relaxed">
                   Your medical information is encrypted and secure. Only emergency responders with access to your QR code can view this information during emergencies.
                 </p>
               </div>
@@ -622,18 +602,17 @@ export default function ProfilePage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="btn-emergency px-12 py-4 disabled:opacity-50 disabled:cursor-not-allowed group"
+              className="w-full sm:w-auto bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-xl font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-[1.02]"
             >
               {isSubmitting ? (
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-center space-x-3">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   <span>Saving Profile...</span>
                 </div>
               ) : (
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-center space-x-3">
                   <span>💾</span>
                   <span>Save Medical Profile</span>
-                  <span className="transition-transform group-hover:translate-x-1">→</span>
                 </div>
               )}
             </button>
@@ -644,6 +623,56 @@ export default function ProfilePage() {
           </div>
         </form>
       </main>
+
+      {/* Bottom Navigation - Mobile only */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+        <div className="grid grid-cols-5 h-16">
+          {/* Dashboard */}
+          <Link href="/dashboard" className="flex flex-col items-center justify-center space-y-1 hover:bg-gray-50 transition-colors duration-200">
+            <span className="text-lg">🏠</span>
+            <span className="text-xs text-gray-600">Home</span>
+          </Link>
+          
+          {/* Profile */}
+          <Link href="/profile" className="flex flex-col items-center justify-center space-y-1 bg-red-50 border-t-2 border-red-500">
+            <span className="text-lg">👤</span>
+            <span className="text-xs font-medium text-red-600">Profile</span>
+          </Link>
+          
+          {/* QR Code */}
+          <Link href="/qr-code" className="flex flex-col items-center justify-center space-y-1 hover:bg-gray-50 transition-colors duration-200">
+            <span className="text-lg">📱</span>
+            <span className="text-xs text-gray-600">QR Code</span>
+          </Link>
+          
+          {/* Contacts */}
+          <button
+            onClick={() => setShowContactsModal(true)}
+            className="flex flex-col items-center justify-center space-y-1 hover:bg-gray-50 transition-colors duration-200"
+          >
+            <span className="text-lg">👥</span>
+            <span className="text-xs text-gray-600">Contacts</span>
+          </button>
+          
+          {/* Emergency */}
+          <button
+            onClick={() => window.location.href = 'tel:911'}
+            className="flex flex-col items-center justify-center space-y-1 bg-red-500 hover:bg-red-600 transition-colors duration-200"
+          >
+            <span className="text-lg text-white">🚑</span>
+            <span className="text-xs text-white font-medium">Emergency</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Contacts Modal */}
+      <ContactsModal
+        isOpen={showContactsModal}
+        onClose={() => setShowContactsModal(false)}
+        userId={user.id}
+        initialContacts={formData.emergencyContacts.filter(c => c.name.trim())}
+        onContactsUpdated={handleContactsUpdated}
+      />
     </div>
   );
 }
