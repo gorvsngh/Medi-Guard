@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import AuthModal from '@/components/AuthModal';
 
 // Data structures for reusable content
@@ -37,6 +38,15 @@ const testimonials = [
 export default function HomePage() {
   const [authModal, setAuthModal] = useState({ isOpen: false, mode: 'login' as 'login' | 'register' });
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { user, loading } = useAuth();
+
+  // Redirect to dashboard if user is already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, loading, router]);
 
   // Auto-open login modal if showLogin=true in URL (after logout)
   useEffect(() => {
@@ -47,6 +57,25 @@ export default function HomePage() {
       window.history.replaceState({}, '', '/');
     }
   }, [searchParams]);
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-primary flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mx-auto animate-pulse">
+            <span className="text-white text-2xl">🛡️</span>
+          </div>
+          <div className="text-lg text-gray-600">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't show homepage if user is authenticated (will redirect)
+  if (user) {
+    return null;
+  }
 
   const openAuthModal = (mode: 'login' | 'register') => {
     setAuthModal({ isOpen: true, mode });
