@@ -10,7 +10,6 @@ export const metadata: Metadata = {
   description: "Instant access to critical medical information in emergencies. QR code-based emergency health platform for first responders.",
   keywords: "emergency, medical, health, first responders, QR code, medical alert, emergency contacts",
   authors: [{ name: "MedGuard Team" }],
-  viewport: "width=device-width, initial-scale=1",
   robots: "index, follow",
   openGraph: {
     title: "MedGuard - Emergency Health Platform",
@@ -18,6 +17,11 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
   },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
