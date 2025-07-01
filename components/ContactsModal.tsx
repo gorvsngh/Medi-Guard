@@ -19,7 +19,6 @@ interface ContactsModalProps {
 export default function ContactsModal({
   isOpen,
   onClose,
-  userId,
   initialContacts = [],
   onContactsUpdated
 }: ContactsModalProps) {

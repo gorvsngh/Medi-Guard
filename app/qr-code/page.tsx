@@ -22,7 +22,7 @@ export default function QRCodePage() {
   
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [downloadMessage, setDownloadMessage] = useState<string>('');
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLoggingOut] = useState(false);
 
   // Generate QR code URL
   useEffect(() => {
@@ -47,7 +47,6 @@ export default function QRCodePage() {
 
   const {
     dataURL,
-    svg,
     loading: qrLoading,
     error: qrError,
     downloadQRCode,
@@ -73,7 +72,7 @@ export default function QRCodePage() {
     try {
       await downloadQRCode('medguard-emergency-qr');
       showMessage('QR code downloaded successfully!');
-    } catch (error) {
+    } catch {
       showMessage('Download failed. Please try again.', 'error');
     }
   };
@@ -82,7 +81,7 @@ export default function QRCodePage() {
     try {
       await downloadQRCodeSVG('medguard-emergency-qr');
       showMessage('SVG QR code downloaded successfully!');
-    } catch (error) {
+    } catch {
       showMessage('Download failed. Please try again.', 'error');
     }
   };
@@ -91,7 +90,7 @@ export default function QRCodePage() {
     try {
       printQRCode();
       showMessage('Print dialog opened!');
-    } catch (error) {
+    } catch {
       showMessage('Print failed. Please try again.', 'error');
     }
   };
@@ -100,7 +99,7 @@ export default function QRCodePage() {
     try {
       await copyToClipboard();
       showMessage('URL copied to clipboard!');
-    } catch (error) {
+    } catch {
       showMessage('Copy failed. Please try again.', 'error');
     }
   };
@@ -219,6 +218,7 @@ export default function QRCodePage() {
               {isReady && dataURL && (
                 <div className="space-y-6 lg:space-y-8">
                   <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-2xl border-2 border-gray-200 inline-block shadow-sm">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={dataURL} 
                       alt="Emergency QR Code" 

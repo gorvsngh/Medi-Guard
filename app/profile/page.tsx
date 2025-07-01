@@ -33,7 +33,7 @@ export default function ProfilePage() {
   const user = authUser as ExtendedUser | null;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLoggingOut] = useState(false);
   const [showContactsModal, setShowContactsModal] = useState(false);
 
   // Form state
@@ -100,7 +100,7 @@ export default function ProfilePage() {
     if (field && typeof index === 'number') {
       // Handle array items with object values (emergency contacts)
       setFormData((prev) => {
-        const updatedArray = [...prev[field as keyof typeof prev]] as any;
+        const updatedArray = [...prev[field as keyof typeof prev]] as { name: string; phone: string; relationship: string }[];
         updatedArray[index] = {
           ...updatedArray[index],
           [name]: value,
@@ -169,7 +169,7 @@ export default function ProfilePage() {
   };
 
   // Handle contacts updated from modal
-  const handleContactsUpdated = (contacts: any[]) => {
+  const handleContactsUpdated = (contacts: { name: string; phone: string; relationship: string }[]) => {
     setFormData(prev => ({
       ...prev,
       emergencyContacts: contacts

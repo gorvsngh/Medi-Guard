@@ -68,13 +68,13 @@ export function useQRCode(text: string, options: QRCodeOptions = {}) {
         loading: false,
         error: null,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('QR Code generation failed:', error);
       setState({
         dataURL: null,
         svg: null,
         loading: false,
-        error: error.message || 'Failed to generate QR code',
+        error: error instanceof Error ? error.message : 'Failed to generate QR code',
       });
     }
   }, [options]);
@@ -99,7 +99,7 @@ export function useQRCode(text: string, options: QRCodeOptions = {}) {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Download failed:', error);
       throw new Error('Failed to download QR code');
     }
@@ -127,7 +127,7 @@ export function useQRCode(text: string, options: QRCodeOptions = {}) {
       
       // Clean up
       URL.revokeObjectURL(url);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('SVG download failed:', error);
       throw new Error('Failed to download SVG QR code');
     }
@@ -140,7 +140,7 @@ export function useQRCode(text: string, options: QRCodeOptions = {}) {
 
     try {
       await navigator.clipboard.writeText(text);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Copy to clipboard failed:', error);
       // Fallback for older browsers
       const textArea = document.createElement('textarea');
@@ -231,7 +231,7 @@ export function useQRCode(text: string, options: QRCodeOptions = {}) {
         printWindow.print();
         printWindow.close();
       }, 500);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Print failed:', error);
       throw new Error('Failed to print QR code');
     }

@@ -109,15 +109,16 @@ export async function POST(request: NextRequest) {
     console.log('✅ Registration completed successfully');
 
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('💥 Registration error occurred:');
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    console.error('Error code:', error.code);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     console.error('Full error:', error);
 
     // Handle duplicate key error (user already exists)
-    if (error.code === 11000) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 11000) {
       console.log('❌ Duplicate key error - user already exists');
       return NextResponse.json(
         { message: 'User already exists with this email' },
@@ -126,12 +127,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle validation errors from Mongoose
-    if (error.name === 'ValidationError') {
+    if (error && typeof error === 'object' && 'name' in error && error.name === 'ValidationError' && 'errors' in error) {
       console.log('❌ Mongoose validation error:', error.errors);
       return NextResponse.json(
         { 
           message: 'Validation failed',
-          errors: Object.values(error.errors).map((err: any) => ({
+          errors: Object.values(error.errors as Record<string, { path: string; message: string }>).map((err) => ({
             field: err.path,
             message: err.message,
           })),

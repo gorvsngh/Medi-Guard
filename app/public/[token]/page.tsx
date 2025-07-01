@@ -165,7 +165,7 @@ export default async function PublicEmergencyPage({ params }: PublicPageProps) {
           {user.emergencyContacts && user.emergencyContacts.length > 0 && (
             <div className="card">
               <h2 className="card-title">Emergency Contacts</h2>
-              {user.emergencyContacts.map((contact: any, index: number) => (
+              {user.emergencyContacts.map((contact: { name: string; phone: string; relationship: string }, index: number) => (
                 <div key={index} className="contact">
                   <div><strong>{contact.name}</strong> - {contact.relationship}</div>
                   <a href={`tel:${contact.phone}`} className="contact-btn">

@@ -89,8 +89,8 @@ function getClientIP(request: NextRequest): string {
     return xClientIP;
   }
 
-  // Fallback to connection remote address
-  return request.ip || 'unknown';
+  // Fallback if no IP headers are available
+  return 'unknown';
 }
 
 // Pre-configured rate limiters for different endpoints

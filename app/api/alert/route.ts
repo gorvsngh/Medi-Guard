@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Emergency alert error:', error);
     return NextResponse.json(
       { message: 'Failed to send emergency alert' },

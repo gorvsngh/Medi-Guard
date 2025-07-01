@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get profile error:', error);
     return NextResponse.json(
       { message: 'Internal server error' },
@@ -167,14 +167,14 @@ export async function PUT(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Update profile error:', error);
 
-    if (error.name === 'ValidationError') {
+    if (error && typeof error === 'object' && 'name' in error && error.name === 'ValidationError' && 'errors' in error) {
       return NextResponse.json(
         { 
           message: 'Validation failed',
-          errors: Object.values(error.errors).map((err: any) => ({
+          errors: Object.values(error.errors as Record<string, { path: string; message: string }>).map((err) => ({
             field: err.path,
             message: err.message,
           })),

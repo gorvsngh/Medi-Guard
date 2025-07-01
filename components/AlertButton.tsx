@@ -65,7 +65,11 @@ export default function AlertButton({
       }
 
       // Prepare request body
-      const requestBody: any = {
+      const requestBody: {
+        location?: { latitude: number; longitude: number } | null;
+        customMessage: string;
+        publicToken?: string;
+      } = {
         location,
         customMessage: publicToken 
           ? 'Emergency alert triggered via QR code scan'

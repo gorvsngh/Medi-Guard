@@ -37,7 +37,7 @@ export default function DashboardPage() {
     if (!loading && user) {
       refreshUser();
     }
-  }, []);
+  }, [loading, user, refreshUser]);
 
 
 
@@ -63,7 +63,7 @@ export default function DashboardPage() {
 
   const profileCompleteness = () => {
     let completed = 0;
-    let total = 4;
+    const total = 4;
     
     if (user.name) completed++;
     if (user.bloodType) completed++;

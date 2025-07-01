@@ -32,7 +32,14 @@ export interface AlertData {
 export async function sendEmergencyAlert(alertData: AlertData): Promise<{
   success: boolean;
   message: string;
-  results?: any[];
+  results?: Array<{
+    contact: string;
+    phone: string;
+    formattedPhone?: string;
+    status?: string;
+    sid?: string;
+    error?: string;
+  }>;
 }> {
   if (!client) {
     return {
@@ -114,12 +121,13 @@ export async function sendEmergencyAlert(alertData: AlertData): Promise<{
         });
 
         console.log(`✅ Alert sent to ${contact.name} (${contact.phone} -> ${formattedPhone})`);
-      } catch (error: any) {
-        console.error(`❌ Failed to send alert to ${contact.name} (${contact.phone}):`, error.message);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error(`❌ Failed to send alert to ${contact.name} (${contact.phone}):`, errorMessage);
         errors.push({
           contact: contact.name,
           phone: contact.phone,
-          error: error.message,
+          error: errorMessage,
         });
       }
     }
@@ -149,7 +157,7 @@ export async function sendEmergencyAlert(alertData: AlertData): Promise<{
       message: `Emergency alerts successfully sent to all ${totalContacts} contacts.`,
       results,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Unexpected error sending emergency alerts:', error);
     return {
       success: false,
@@ -309,7 +317,7 @@ export function checkPhoneNumber(phone: string): {
     }
     
     return { isValid: false, error, suggestions };
-  } catch (err) {
+  } catch {
     return { 
       isValid: false, 
       error: 'Invalid phone number format',
@@ -324,7 +332,12 @@ export function checkPhoneNumber(phone: string): {
 export async function sendTestSMS(testNumber: string = '+15005550006'): Promise<{
   success: boolean;
   message: string;
-  result?: any;
+  result?: {
+    sid: string;
+    status: string;
+    to: string;
+    from: string;
+  };
 }> {
   if (!client) {
     return {
@@ -359,11 +372,12 @@ export async function sendTestSMS(testNumber: string = '+15005550006'): Promise<
         from: result.from,
       },
     };
-  } catch (error: any) {
-    console.error(`❌ Failed to send test SMS to ${testNumber}:`, error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`❌ Failed to send test SMS to ${testNumber}:`, errorMessage);
     return {
       success: false,
-      message: `Failed to send test SMS: ${error.message}`,
+      message: `Failed to send test SMS: ${errorMessage}`,
     };
   }
 } 

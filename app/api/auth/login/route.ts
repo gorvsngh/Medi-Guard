@@ -110,11 +110,12 @@ export async function POST(request: NextRequest) {
     console.log('✅ Login completed successfully');
 
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('💥 Login error occurred:');
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    console.error('Error code:', error.code);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     console.error('Full error:', error);
 
     console.log('❌ Unknown error, returning 500');

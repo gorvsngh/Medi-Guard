@@ -49,7 +49,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
       } else {
         setError(result.message);
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);

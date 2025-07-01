@@ -3,7 +3,12 @@
 import { useState } from 'react';
 
 export default function TestAPIPage() {
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{
+    success: boolean;
+    message: string;
+    result?: unknown;
+    error?: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [testNumber, setTestNumber] = useState(''); // Empty by default for user to enter their verified number
 
@@ -28,7 +33,7 @@ export default function TestAPIPage() {
       setResult({
         success: false,
         message: 'Network error occurred',
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     } finally {
       setLoading(false);
@@ -55,7 +60,7 @@ export default function TestAPIPage() {
           <h3 className="text-lg font-semibold text-yellow-800 mb-3">🔐 How to Verify Your Phone Number</h3>
           <ol className="text-yellow-700 space-y-2 list-decimal list-inside">
             <li>Go to <a href="https://console.twilio.com/us1/develop/phone-numbers/manage/verified" target="_blank" className="text-blue-600 underline">Twilio Console → Verified Caller IDs</a></li>
-            <li>Click <strong>"Add a new Caller ID"</strong></li>
+            <li>Click <strong>&quot;Add a new Caller ID&quot;</strong></li>
             <li>Enter your phone number (Indian: +91xxxxxxxxxx)</li>
             <li>Twilio will call/SMS you with a verification code</li>
             <li>Enter the code to verify</li>
@@ -103,7 +108,7 @@ export default function TestAPIPage() {
               {result.message}
             </p>
             
-            {result.result && (
+            {result.result != null && (
               <div className="bg-white rounded p-4 text-sm">
                 <pre className="whitespace-pre-wrap">
                   {JSON.stringify(result.result, null, 2)}

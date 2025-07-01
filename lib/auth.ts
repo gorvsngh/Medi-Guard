@@ -24,7 +24,7 @@ export function signToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
 export function verifyToken(token: string): JWTPayload | null {
   try {
     return jwt.verify(token, JWT_SECRET) as JWTPayload;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -46,7 +46,7 @@ export async function getTokenFromCookies(): Promise<string | null> {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     return token || null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -54,7 +54,13 @@ export async function getTokenFromCookies(): Promise<string | null> {
 export function setTokenCookie(token: string): { 
   name: string; 
   value: string; 
-  options: any; 
+  options: {
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: 'strict';
+    maxAge: number;
+    path: string;
+  }; 
 } {
   return {
     name: 'token',
@@ -72,7 +78,13 @@ export function setTokenCookie(token: string): {
 export function clearTokenCookie(): { 
   name: string; 
   value: string; 
-  options: any; 
+  options: {
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: 'strict';
+    maxAge: number;
+    path: string;
+  }; 
 } {
   return {
     name: 'token',

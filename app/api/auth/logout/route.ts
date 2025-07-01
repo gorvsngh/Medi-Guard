@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { clearTokenCookie } from '@/lib/auth';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Clear the authentication cookie
     const cookie = clearTokenCookie();
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     response.cookies.set(cookie.name, cookie.value, cookie.options);
 
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Logout error:', error);
     return NextResponse.json(
       { message: 'Internal server error' },

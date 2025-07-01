@@ -87,10 +87,10 @@ export function useLocation(options: UseLocationOptions = {}) {
       }));
 
       return locationData;
-    } catch (error: any) {
+    } catch (error: unknown) {
       let errorMessage = 'Failed to get location';
 
-      if (error.code) {
+      if (error && typeof error === 'object' && 'code' in error) {
         switch (error.code) {
           case GeolocationPositionError.PERMISSION_DENIED:
             errorMessage = 'Location access denied. Please enable location services for emergency alerts.';
@@ -104,7 +104,7 @@ export function useLocation(options: UseLocationOptions = {}) {
           default:
             errorMessage = 'An unknown error occurred while getting location.';
         }
-      } else if (error.message) {
+      } else if (error instanceof Error) {
         errorMessage = error.message;
       }
 

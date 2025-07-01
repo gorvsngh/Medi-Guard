@@ -110,7 +110,7 @@ const UserSchema: Schema = new Schema(
       ],
       default: [],
       validate: {
-        validator: function (arr: any[]) {
+        validator: function (arr: Array<{ name: string; phone: string; relationship: string }>) {
           return arr.length <= 10;
         },
         message: 'Cannot have more than 10 emergency contacts',
@@ -138,15 +138,15 @@ UserSchema.pre('save', async function (next) {
 
   try {
     const salt = await bcrypt.genSalt(12);
-    this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
+    this.passwordHash = await bcrypt.hash(this.passwordHash as string, salt);
     next();
-  } catch (error: any) {
-    next(error);
+  } catch (error: unknown) {
+    next(error instanceof Error ? error : new Error('Unknown error during password hashing'));
   }
 });
 
 // Pre-save middleware to generate public token
-UserSchema.pre('save', function (next) {
+UserSchema.pre('save', function (this: IUser, next) {
   if (!this.publicToken) {
     this.publicToken = this.generatePublicToken();
   }

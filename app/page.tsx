@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import AuthModal from '@/components/AuthModal';
@@ -35,9 +34,29 @@ const testimonials = [
   { name: "Lisa Williams", role: "Patient", text: "Peace of mind knowing my family can be contacted instantly if something happens.", avatar: "👩" }
 ];
 
+// Component that handles search params (needs Suspense)
+function SearchParamsHandler({ 
+  setAuthModal 
+}: { 
+  setAuthModal: React.Dispatch<React.SetStateAction<{ isOpen: boolean; mode: 'login' | 'register' }>>
+}) {
+  const searchParams = useSearchParams();
+  
+  // Auto-open login modal if showLogin=true in URL (after logout)
+  useEffect(() => {
+    const showLogin = searchParams.get('showLogin');
+    if (showLogin === 'true') {
+      setAuthModal({ isOpen: true, mode: 'login' });
+      // Clean up the URL parameter
+      window.history.replaceState({}, '', '/');
+    }
+  }, [searchParams, setAuthModal]);
+
+  return null; // This component doesn't render anything
+}
+
 export default function HomePage() {
   const [authModal, setAuthModal] = useState({ isOpen: false, mode: 'login' as 'login' | 'register' });
-  const searchParams = useSearchParams();
   const router = useRouter();
   const { user, loading } = useAuth();
 
@@ -47,16 +66,6 @@ export default function HomePage() {
       router.push('/dashboard');
     }
   }, [user, loading, router]);
-
-  // Auto-open login modal if showLogin=true in URL (after logout)
-  useEffect(() => {
-    const showLogin = searchParams.get('showLogin');
-    if (showLogin === 'true') {
-      setAuthModal({ isOpen: true, mode: 'login' });
-      // Clean up the URL parameter
-      window.history.replaceState({}, '', '/');
-    }
-  }, [searchParams]);
 
   // Show loading while checking auth
   if (loading) {
@@ -87,6 +96,10 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-primary">
+      {/* Handle search params with Suspense boundary */}
+      <Suspense fallback={null}>
+        <SearchParamsHandler setAuthModal={setAuthModal} />
+      </Suspense>
       {/* Navigation */}
       <nav className="bg-white/80 backdrop-blur-sm shadow-soft sticky top-0 z-50">
         <div className="container-width">
