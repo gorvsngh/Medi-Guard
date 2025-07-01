@@ -12,6 +12,51 @@ MedGuard allows users to create comprehensive medical profiles and generate QR c
 - **SOS Alert System** - One-click emergency alerts with location sharing via SMS
 - **Security & Privacy** - JWT authentication, rate limiting, and secure token-based access
 
+## 📊 Data Flow Diagram
+
+The following diagram illustrates how data flows through the MedGuard system, from user registration to emergency access:
+
+```mermaid
+graph TD
+    A["👤 User Registration"] --> B["🔐 Authentication<br/>JWT Token"]
+    B --> C["📝 Profile Creation<br/>Medical Information"]
+    C --> D["🔒 Database Storage<br/>MongoDB"]
+    D --> E["🔗 QR Code Generation<br/>Unique Token"]
+    
+    E --> F["📱 QR Code Display<br/>Print/Download"]
+    F --> G["🚨 Emergency Scan<br/>Public Access"]
+    
+    G --> H["🌐 Public Emergency Page<br/>/public/[token]"]
+    H --> I["📋 Medical Information<br/>Display"]
+    
+    I --> J{"🆘 Emergency Alert?"}
+    J -->|Yes| K["📍 Get Location<br/>Browser API"]
+    J -->|No| L["ℹ️ View Only Mode"]
+    
+    K --> M["📞 Send SMS Alert<br/>Twilio API"]
+    M --> N["👥 Emergency Contacts<br/>Notification"]
+    
+    D --> O["🔄 Profile Updates<br/>Real-time Sync"]
+    O --> E
+    
+    P["🛡️ Security Layer"] --> B
+    P --> G
+    P --> M
+    
+    Q["⚡ Rate Limiting"] --> P
+    R["🔍 Input Validation"] --> P
+    S["🍪 JWT Cookies"] --> P
+```
+
+### Data Flow Explanation
+
+1. **User Registration & Authentication**: Users create accounts with secure JWT-based authentication
+2. **Profile Management**: Medical information is stored securely in MongoDB
+3. **QR Code Generation**: Each profile gets a unique, secure token for public access
+4. **Emergency Access**: QR codes provide instant, no-login access to medical information
+5. **Alert System**: Optional SOS alerts notify emergency contacts with location data
+6. **Security Layer**: Multiple security measures protect all data flows
+
 ## 🔧 Tech Stack
 
 - **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
