@@ -28,17 +28,6 @@ export function useQRCode(text: string, options: QRCodeOptions = {}) {
     error: null,
   });
 
-  const defaultOptions: QRCodeOptions = {
-    width: 256,
-    margin: 2,
-    color: {
-      dark: '#000000',
-      light: '#FFFFFF',
-    },
-    errorCorrectionLevel: 'M',
-    ...options,
-  };
-
   const generateQRCode = useCallback(async (value: string) => {
     if (!value.trim()) {
       setState({
@@ -53,12 +42,23 @@ export function useQRCode(text: string, options: QRCodeOptions = {}) {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
+      const qrOptions: QRCodeOptions = {
+        width: 256,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF',
+        },
+        errorCorrectionLevel: 'M',
+        ...options,
+      };
+
       // Generate data URL (PNG format)
-      const dataURL = await QRCode.toDataURL(value, defaultOptions);
+      const dataURL = await QRCode.toDataURL(value, qrOptions);
 
       // Generate SVG string
       const svg = await QRCode.toString(value, {
-        ...defaultOptions,
+        ...qrOptions,
         type: 'svg',
       });
 
@@ -77,7 +77,7 @@ export function useQRCode(text: string, options: QRCodeOptions = {}) {
         error: error.message || 'Failed to generate QR code',
       });
     }
-  }, [defaultOptions]);
+  }, [options]);
 
   // Generate QR code when text changes
   useEffect(() => {

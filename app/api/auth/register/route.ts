@@ -7,32 +7,32 @@ import User from '@/models/User';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔥 Registration API called');
+    console.log('🔐 Register API called');
     
     // Apply rate limiting
     const rateLimitResult = authRateLimiter(request);
     if (rateLimitResult) {
-      console.log('❌ Rate limit exceeded');
+      console.log('❌ Rate limit exceeded for registration');
       return rateLimitResult;
     }
 
-    console.log('✅ Rate limit passed');
+    console.log('✅ Rate limit passed for registration');
 
     // Connect to database
     console.log('🔌 Connecting to database...');
     await connectDB();
-    console.log('✅ Database connected');
+    console.log('✅ Database connected for registration');
 
     // Parse and validate request body
-    console.log('📝 Parsing request body...');
+    console.log('📝 Parsing registration request body...');
     const body = await request.json();
-    console.log('📝 Request body:', { ...body, password: '[HIDDEN]', confirmPassword: '[HIDDEN]' });
+    console.log('📝 Registration data:', { ...body, password: '[HIDDEN]', confirmPassword: '[HIDDEN]' });
     
-    console.log('🔍 Validating request...');
+    console.log('🔍 Validating registration request...');
     const validationResult = registerSchema.safeParse(body);
 
     if (!validationResult.success) {
-      console.log('❌ Validation failed:', validationResult.error.errors);
+      console.log('❌ Registration validation failed:', validationResult.error.errors);
       return NextResponse.json(
         { 
           message: 'Validation failed',
@@ -45,54 +45,56 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ Validation passed');
+    console.log('✅ Registration validation passed');
     const { name, email, password } = validationResult.data;
-    console.log('📋 Extracted data:', { name, email, password: '[HIDDEN]' });
+    console.log('📋 Extracted registration data:', { name, email, password: '[HIDDEN]' });
 
     // Check if user already exists
-    console.log('🔍 Checking if user exists...');
+    console.log('🔍 Checking if user already exists...');
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      console.log('❌ User already exists');
+      console.log('❌ User already exists with email:', email);
       return NextResponse.json(
         { message: 'User already exists with this email' },
         { status: 409 }
       );
     }
 
-    console.log('✅ User does not exist, creating new user...');
+    console.log('✅ Email is available for registration');
+
     // Create new user
-    const user = new User({
+    console.log('👤 Creating new user...');
+    const newUser = new User({
       name,
       email,
-      passwordHash: password, // Will be hashed by pre-save middleware
+      passwordHash: password, // This will be hashed by the pre-save middleware
     });
 
     console.log('💾 Saving user to database...');
-    await user.save();
-    console.log('✅ User saved successfully');
+    await newUser.save();
+    console.log('✅ User created successfully:', { id: newUser._id, email: newUser.email });
 
     // Generate JWT token
     console.log('🔑 Generating JWT token...');
     const token = signToken({
-      userId: user._id.toString(),
-      email: user.email,
+      userId: newUser._id.toString(),
+      email: newUser.email,
     });
-    console.log('✅ JWT token generated');
+    console.log('✅ JWT token generated for new user');
 
     // Prepare user data for response (exclude password hash)
     console.log('📄 Preparing user data for response...');
     const userData = {
-      id: user._id.toString(),
-      name: user.name,
-      email: user.email,
-      bloodType: user.bloodType,
-      publicToken: user.publicToken,
+      id: newUser._id.toString(),
+      name: newUser.name,
+      email: newUser.email,
+      bloodType: newUser.bloodType,
+      publicToken: newUser.publicToken,
     };
-    console.log('📄 User data:', userData);
+    console.log('📄 User registration response data:', userData);
 
     // Set HTTP-only cookie and return response
-    console.log('🍪 Setting cookie...');
+    console.log('🍪 Setting authentication cookie...');
     const cookie = setTokenCookie(token);
     const response = NextResponse.json(
       {
@@ -114,16 +116,31 @@ export async function POST(request: NextRequest) {
     console.error('Error code:', error.code);
     console.error('Full error:', error);
 
+    // Handle duplicate key error (user already exists)
     if (error.code === 11000) {
-      // MongoDB duplicate key error
-      console.log('❌ MongoDB duplicate key error');
+      console.log('❌ Duplicate key error - user already exists');
       return NextResponse.json(
         { message: 'User already exists with this email' },
         { status: 409 }
       );
     }
 
-    console.log('❌ Unknown error, returning 500');
+    // Handle validation errors from Mongoose
+    if (error.name === 'ValidationError') {
+      console.log('❌ Mongoose validation error:', error.errors);
+      return NextResponse.json(
+        { 
+          message: 'Validation failed',
+          errors: Object.values(error.errors).map((err: any) => ({
+            field: err.path,
+            message: err.message,
+          })),
+        },
+        { status: 400 }
+      );
+    }
+
+    console.log('❌ Unknown registration error, returning 500');
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

@@ -28,6 +28,8 @@ export default function LoginPage() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    // Clear error when user starts typing
+    if (error) setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,40 +57,58 @@ export default function LoginPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      <div className="loading-overlay">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 spinner mx-auto"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="text-center">
-          <span className="text-4xl">🛡️</span>
-          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Access your MedGuard emergency health profile
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-primary flex flex-col">
+      {/* Header */}
+      <div className="px-responsive py-8">
+        <Link href="/" className="inline-flex items-center space-x-3 group">
+          <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110">
+            <span className="text-white text-xl">🛡️</span>
+          </div>
+          <span className="text-2xl font-bold text-gray-900">MedGuard</span>
+        </Link>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center px-responsive py-12">
+        <div className="w-full max-w-md space-y-8 animate-fadeIn">
+          {/* Header */}
+          <div className="text-center space-y-6">
+            <div className="space-y-3">
+              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+                Welcome back
+              </h1>
+              <p className="text-lg text-gray-600">
+                Sign in to access your emergency health profile
+              </p>
+            </div>
+          </div>
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <div className="mt-1">
+          {/* Form */}
+          <div className="card space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {error && (
+                <div className="alert-error animate-slideIn">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-red-500">⚠️</span>
+                    <span>{error}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="form-group">
+                <label htmlFor="email" className="form-label">
+                  Email address
+                </label>
                 <input
                   id="email"
                   name="email"
@@ -97,17 +117,15 @@ export default function LoginPage() {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
-                  placeholder="Enter your email"
+                  className="form-input"
+                  placeholder="Enter your email address"
                 />
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="mt-1">
+              <div className="form-group">
+                <label htmlFor="password" className="form-label">
+                  Password
+                </label>
                 <input
                   id="password"
                   name="password"
@@ -116,85 +134,90 @@ export default function LoginPage() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm"
+                  className="form-input"
                   placeholder="Enter your password"
                 />
               </div>
-            </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                  Remember me
-                </label>
-              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
+                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="remember-me" className="ml-3 block text-sm text-gray-700">
+                    Remember me
+                  </label>
+                </div>
 
-              <div className="text-sm">
                 <Link
                   href="/forgot-password"
-                  className="font-medium text-red-600 hover:text-red-500"
+                  className="text-sm font-medium text-red-600 hover:text-red-500 transition-colors"
                 >
-                  Forgot your password?
+                  Forgot password?
                 </Link>
               </div>
-            </div>
 
-            <div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Signing in...
+                  <div className="flex items-center justify-center space-x-2">
+                    <div className="w-4 h-4 spinner"></div>
+                    <span>Signing in...</span>
                   </div>
                 ) : (
-                  'Sign in'
+                  <div className="flex items-center justify-center space-x-2">
+                    <span>Sign in</span>
+                    <span className="transition-transform group-hover:translate-x-1">→</span>
+                  </div>
                 )}
               </button>
-            </div>
-          </form>
+            </form>
 
-          <div className="mt-6">
+            {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">New to MedGuard?</span>
+                <span className="px-4 bg-white text-gray-500">New to MedGuard?</span>
               </div>
             </div>
 
-            <div className="mt-6 text-center">
+            {/* Register Link */}
+            <div className="text-center">
               <Link
                 href="/register"
-                className="font-medium text-red-600 hover:text-red-500"
+                className="inline-flex items-center space-x-2 font-medium text-red-600 hover:text-red-500 transition-colors group"
               >
-                Create a new account →
+                <span>Create a new account</span>
+                <span className="transition-transform group-hover:translate-x-1">→</span>
               </Link>
             </div>
           </div>
 
-          <div className="mt-4 text-xs text-gray-500 text-center">
-            Secure emergency health platform for first responders
+          {/* Footer Note */}
+          <div className="text-center">
+            <p className="text-sm text-gray-500">
+              Secure emergency health platform for first responders
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="mt-8 text-center">
+      {/* Bottom Navigation */}
+      <div className="px-responsive py-8 text-center">
         <Link
           href="/"
-          className="text-sm text-gray-600 hover:text-gray-900"
+          className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors group"
         >
-          ← Back to home
+          <span className="transition-transform group-hover:-translate-x-1">←</span>
+          <span>Back to home</span>
         </Link>
       </div>
     </div>

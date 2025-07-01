@@ -3,12 +3,25 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
+interface EmergencyContact {
+  _id?: string;
+  name: string;
+  phone: string;
+  relationship: string;
+}
+
 interface User {
   id: string;
   name: string;
   email: string;
   bloodType?: string;
+  allergies?: string[];
+  conditions?: string[];
+  medications?: string[];
+  emergencyContacts?: EmergencyContact[];
   publicToken?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface AuthContextType {
@@ -67,7 +80,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         setUser(data.user);
+        // Add a small delay to ensure cookie is set before navigation
+        setTimeout(() => {
         router.push('/dashboard');
+        }, 100);
         return { success: true, message: 'Login successful' };
       } else {
         return { success: false, message: data.message || 'Login failed' };
@@ -93,7 +109,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         setUser(result.user);
+        // Add a small delay to ensure cookie is set before navigation
+        setTimeout(() => {
         router.push('/dashboard');
+        }, 100);
         return { success: true, message: 'Registration successful' };
       } else {
         return { success: false, message: result.message || 'Registration failed' };

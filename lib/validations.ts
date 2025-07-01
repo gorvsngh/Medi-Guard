@@ -1,10 +1,8 @@
 import { z } from 'zod';
+import { formatPhoneNumber, validatePhoneNumber } from './twilio';
 
 // Blood type enum
 const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
-
-// Phone number validation regex
-const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
 
 // Emergency contact schema
 export const emergencyContactSchema = z.object({
@@ -13,8 +11,9 @@ export const emergencyContactSchema = z.object({
     .max(100, 'Contact name cannot exceed 100 characters')
     .trim(),
   phone: z.string()
-    .regex(phoneRegex, 'Please enter a valid phone number')
-    .transform(val => val.replace(/[\s\-\(\)]/g, '')), // Clean phone number
+    .min(1, 'Phone number is required')
+    .transform(formatPhoneNumber) // Format to E.164 standard
+    .refine(validatePhoneNumber, 'Please enter a valid phone number'),
   relationship: z.string()
     .min(1, 'Relationship is required')
     .max(50, 'Relationship cannot exceed 50 characters')
@@ -138,10 +137,10 @@ export function validateEmail(email: string): boolean {
   }
 }
 
-export function validatePhoneNumber(phone: string): boolean {
+export function validatePhoneNumberFormat(phone: string): boolean {
   try {
-    z.string().regex(phoneRegex).parse(phone.replace(/[\s\-\(\)]/g, ''));
-    return true;
+    const formatted = formatPhoneNumber(phone);
+    return validatePhoneNumber(formatted);
   } catch {
     return false;
   }

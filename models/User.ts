@@ -119,7 +119,6 @@ const UserSchema: Schema = new Schema(
     publicToken: {
       type: String,
       unique: true,
-      index: true,
     },
     isActive: {
       type: Boolean,
@@ -131,9 +130,7 @@ const UserSchema: Schema = new Schema(
   }
 );
 
-// Index for faster queries
-UserSchema.index({ email: 1 });
-UserSchema.index({ publicToken: 1 });
+// Note: Indexes are already defined in the schema fields above with unique: true and index: true
 
 // Pre-save middleware to hash password
 UserSchema.pre('save', async function (next) {

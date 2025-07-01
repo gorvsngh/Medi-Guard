@@ -1,256 +1,341 @@
 # 🛡️ MedGuard - Emergency Health Platform
 
-A production-ready full-stack web application that serves as an emergency health platform. First responders or bystanders can instantly access a patient's critical medical information by scanning a QR code and trigger one-click SOS alerts to emergency contacts.
+A production-ready full-stack emergency health platform that provides instant access to critical medical information through QR codes. Perfect for first responders, emergency situations, and peace of mind.
 
-## 🚨 Features
+## 🚨 Overview
 
-### Core Functionality
-- **QR Code Emergency Access**: Instant access to medical information via QR code scanning
-- **Medical Profile Management**: Comprehensive medical profiles including blood type, allergies, conditions, medications
-- **Emergency Contacts**: Multiple emergency contacts with one-click calling
-- **SOS Alerts**: One-click emergency alerts with geolocation sent via SMS
-- **Mobile-First Design**: Optimized for emergency situations on mobile devices
-- **No-Login Emergency Access**: Critical information accessible without authentication
+MedGuard allows users to create comprehensive medical profiles and generate QR codes that provide instant, no-login access to critical medical information in emergencies. The platform includes:
 
-### Security & Performance
-- **JWT Authentication**: Secure authentication with HTTP-only cookies
-- **Rate Limiting**: Protection against abuse and brute force attacks
-- **Input Validation**: Comprehensive validation using Zod schemas
-- **XSS Protection**: Input sanitization and secure output rendering
-- **Fast Loading**: Static generation for emergency pages (ISR)
-- **Secure Tokens**: Unique public tokens for emergency access
+- **Medical Profile Management** - Blood type, allergies, conditions, medications, emergency contacts
+- **QR Code Generation** - Unique, secure QR codes for instant emergency access
+- **Public Emergency Pages** - Fast-loading, mobile-optimized emergency information display
+- **SOS Alert System** - One-click emergency alerts with location sharing via SMS
+- **Security & Privacy** - JWT authentication, rate limiting, and secure token-based access
 
-### Integrations
-- **MongoDB**: Scalable database with Mongoose ODM
-- **Twilio SMS**: Emergency alert system with SMS/WhatsApp
-- **Geolocation**: Automatic location sharing in emergencies
-- **QR Code Generation**: High-quality QR codes with print/download options
+## 🔧 Tech Stack
 
-## 🛠️ Tech Stack
-
-### Frontend
-- **Next.js 15**: App Router with React Server Components
-- **TypeScript**: Full type safety
-- **Tailwind CSS**: Mobile-first responsive design
-- **React Hooks**: Custom hooks for auth, location, QR codes
-
-### Backend
-- **Next.js API Routes**: RESTful API endpoints
-- **MongoDB**: Document database with indexes
-- **Mongoose**: ODM with validation and middleware
-- **JWT**: Secure authentication
-- **bcrypt**: Password hashing
-
-### External Services
-- **Twilio**: SMS/WhatsApp messaging
-- **Geolocation API**: Browser-based location services
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes, Node.js
+- **Database**: MongoDB with Mongoose ODM
+- **Authentication**: JWT with HTTP-only cookies
+- **SMS/Alerts**: Twilio Messaging API
+- **QR Codes**: qrcode library with SVG/PNG support
+- **Security**: Rate limiting, input validation with Zod, CSRF protection
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ and npm
+
+- Node.js 18+ and npm/yarn
 - MongoDB (local or MongoDB Atlas)
 - Twilio account (for SMS alerts)
 
-### 1. Clone and Install
+### Installation
 
+1. **Clone and install dependencies**
 ```bash
-git clone <repository-url>
+git clone <your-repo-url>
 cd medguard
 npm install
 ```
 
-### 2. Environment Setup
-
-Create a `.env` file in the root directory with the following variables:
+2. **Environment Setup**
+Create a `.env.local` file with the following variables:
 
 ```env
-# MongoDB Atlas Connection String (required)
-# Replace with your actual MongoDB Atlas connection string
-MONGODB_URI=mongodb+srv://username:password@your-cluster.mongodb.net/medguard?retryWrites=true&w=majority
+# Database Configuration
+MONGODB_URI=mongodb://localhost:27017/medguard
 
-# JWT Secret for token signing (required)
-# Generate a secure random string for production
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+# JWT Configuration  
+JWT_SECRET=your-super-secret-jwt-key-here-at-least-32-characters-long
 
-# Twilio SMS Configuration (required for emergency alerts)
-# Get these from your Twilio Console at https://console.twilio.com/
+# Twilio Configuration for SMS alerts
 TWILIO_ACCOUNT_SID=your-twilio-account-sid
-TWILIO_AUTH_TOKEN=your-twilio-auth-token
-TWILIO_PHONE_NUMBER=your-twilio-phone-number
+TWILIO_AUTH_TOKEN=your-twilio-auth-token  
+TWILIO_PHONE_NUMBER=+1234567890
 
-# Application Domain (optional, defaults to localhost)
-DOMAIN=http://localhost:3000
-
-# Environment
+# Application Configuration
 NODE_ENV=development
+DOMAIN=http://localhost:3000
 ```
 
-**⚠️ Important**: The application requires these environment variables to function. Make sure to:
-1. Set up a MongoDB Atlas cluster and get your connection string
-2. Create a Twilio account for SMS functionality
-3. Generate a secure JWT secret for production
+3. **Database Setup**
+```bash
+# Start MongoDB locally (if using local installation)
+mongod
 
-### 3. Database Setup
+# Or use MongoDB Atlas cloud database
+# Update MONGODB_URI with your Atlas connection string
+```
 
-Ensure MongoDB is running locally or configure MongoDB Atlas connection string in `.env.local`.
-
-### 4. Run Development Server
-
+4. **Run Development Server**
 ```bash
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to see the application.
+The application will be available at `http://localhost:3000`
 
-## 📱 User Flows
+## 📱 Core Features
 
-### 1. Profile Setup
-1. User registers/logs in
-2. Fills out medical profile form
-3. Receives QR code for printing/saving
+### 1. User Registration & Authentication
+- Secure email/password registration
+- JWT-based authentication with HTTP-only cookies
+- Password hashing with bcrypt
+- Session management and automatic token refresh
 
-### 2. Emergency Access
-1. Bystander scans QR code
-2. Views patient's medical information
-3. Can call 911 or send SOS alerts
-4. Emergency contacts receive SMS with location
+### 2. Medical Profile Management
+- Comprehensive medical information forms
+- Blood type, allergies, chronic conditions, medications
+- Multiple emergency contacts with relationships
+- Form validation with real-time feedback
+- Profile completeness tracking
 
-### 3. SOS Alert Process
-1. Click "Send SOS Alert" button
-2. App requests geolocation permission
-3. SMS sent to all emergency contacts
-4. Message includes patient name, location link, and emergency details
+### 3. QR Code Generation & Management
+- Unique, secure QR codes for each user profile
+- High-resolution PNG and SVG downloads
+- Print-friendly emergency cards
+- URL sharing and clipboard copying
+- Mobile-optimized QR code scanning
 
-## 🔧 Project Structure
+### 4. Public Emergency Access
+- **No-login emergency pages** at `/public/[token]`
+- Instant access to critical medical information
+- Mobile-first, high-contrast emergency UI
+- Static generation for fast loading (ISR)
+- SEO optimization and meta tags
+
+### 5. Emergency Alert System
+- **One-click SOS alerts** via Twilio SMS
+- Automatic geolocation sharing (with fallback)
+- Custom emergency messages
+- Multiple contact notifications
+- Location links via Google Maps
+- Rate limiting to prevent abuse
+
+### 6. Security & Privacy
+- Token-based public access (64-character random tokens)
+- Rate limiting on all critical endpoints
+- Input validation and sanitization
+- CSRF protection and security headers
+- Password strength requirements
+- Secure cookie configuration
+
+## 🏗️ Project Structure
 
 ```
 medguard/
 ├── app/                          # Next.js App Router
-│   ├── api/                      # API routes
+│   ├── api/                      # API Routes
 │   │   ├── auth/                 # Authentication endpoints
 │   │   ├── profile/              # Profile management
-│   │   └── alert/                # Emergency alerts
+│   │   └── alert/                # Emergency alert system
+│   ├── dashboard/                # User dashboard
+│   ├── profile/                  # Profile management UI
+│   ├── qr-code/                  # QR code display & download
 │   ├── public/[token]/           # Public emergency pages
-│   ├── login/                    # Login page
-│   ├── register/                 # Registration page
-│   ├── dashboard/                # User dashboard (create this)
-│   ├── layout.tsx                # Root layout
-│   └── page.tsx                  # Homepage
+│   └── layout.tsx                # Root layout with providers
 ├── components/                   # React components
-│   └── EmergencyPage.tsx         # Emergency info display
+│   └── EmergencyPage.tsx         # Emergency information display
 ├── hooks/                        # Custom React hooks
-│   ├── useAuth.tsx              # Authentication hook
-│   ├── useLocation.ts           # Geolocation hook
-│   └── useQRCode.ts             # QR code generation
-├── lib/                         # Utility libraries
-│   ├── auth.ts                  # JWT utilities
-│   ├── db.ts                    # MongoDB connection
-│   ├── rateLimiter.ts           # Rate limiting
-│   ├── twilio.ts                # SMS service
-│   └── validations.ts           # Zod schemas
-├── models/                      # Database models
-│   └── User.ts                  # User model
-└── middleware/                  # Next.js middleware
+│   ├── useAuth.tsx               # Authentication context
+│   ├── useLocation.ts            # Geolocation handling
+│   └── useQRCode.ts              # QR code generation
+├── lib/                          # Utility libraries
+│   ├── auth.ts                   # JWT utilities
+│   ├── db.ts                     # MongoDB connection
+│   ├── rateLimiter.ts            # Rate limiting
+│   ├── twilio.ts                 # SMS integration
+│   └── validations.ts            # Zod schemas
+├── models/                       # Database models
+│   └── User.ts                   # User/profile schema
+└── middleware.ts                 # Route protection & security
 ```
 
-## 🔐 API Endpoints
+## 🚨 Emergency Usage Flow
 
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-- `GET /api/auth/me` - Get current user
+1. **Profile Setup**: User creates account and completes medical profile
+2. **QR Code Generation**: System generates unique QR code linked to secure token
+3. **Physical QR Code**: User prints/saves QR code for wallet, phone case, etc.
+4. **Emergency Scan**: Anyone can scan QR code to access medical info
+5. **Instant Information**: Emergency page loads with critical medical data
+6. **SOS Alert**: Optional one-click alert sends SMS to emergency contacts with location
 
-### Profile Management
-- `GET /api/profile` - Get user profile
-- `PUT /api/profile` - Update profile
+## 🔒 Security Features
 
-### Emergency Alerts
-- `POST /api/alert` - Send emergency alert
+### Authentication & Authorization
+- JWT tokens with 24-hour expiration
+- HTTP-only, secure cookies (production)
+- Protected routes via middleware
+- Password hashing with bcrypt (salt rounds: 12)
 
-### Public Access
-- `GET /public/[token]` - Emergency page (static)
+### Rate Limiting
+- **Authentication**: 5 attempts per 15 minutes
+- **Emergency Alerts**: 10 alerts per 15 minutes  
+- **Public Pages**: 60 requests per minute
+- **General API**: 100 requests per 15 minutes
+
+### Data Protection
+- Input validation with Zod schemas
+- XSS protection via sanitization
+- CSRF protection via SameSite cookies
+- Secure headers (CSP, HSTS, etc.)
+- MongoDB injection prevention
+
+### Privacy Controls
+- Public tokens are cryptographically random (256-bit)
+- Medical data accessible only via secure token
+- No personal information in URLs or logs
+- Optional profile data (user controls what to share)
+
+## 📲 Mobile Optimization
+
+- **Mobile-first design** with Tailwind CSS breakpoints
+- **Touch-friendly interfaces** with large tap targets
+- **Offline support** for emergency pages (after initial load)
+- **Progressive Web App** features (manifest.json)
+- **High contrast emergency UI** for accessibility
+- **Fast loading** via static generation and image optimization
 
 ## 🚀 Deployment
 
-### Environment Variables
-Ensure all production environment variables are set:
-
+### Environment Variables (Production)
 ```env
 NODE_ENV=production
-DOMAIN=https://your-domain.com
-MONGODB_URI=mongodb+srv://...
-JWT_SECRET=strong-production-secret
-TWILIO_ACCOUNT_SID=...
-TWILIO_AUTH_TOKEN=...
-TWILIO_PHONE_NUMBER=...
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/medguard
+JWT_SECRET=your-production-jwt-secret-32-chars-minimum
+TWILIO_ACCOUNT_SID=your-production-twilio-sid
+TWILIO_AUTH_TOKEN=your-production-twilio-token
+TWILIO_PHONE_NUMBER=your-verified-twilio-number
+DOMAIN=https://yourdomain.com
 ```
 
-### Deploy to Vercel
-1. Connect your GitHub repository to Vercel
-2. Configure environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
+### Vercel Deployment (Recommended)
+```bash
+# Install Vercel CLI
+npm i -g vercel
 
-### Deploy to Other Platforms
-- **Netlify**: Use `npm run build` and deploy `out/` folder
-- **Docker**: Create Dockerfile with Node.js runtime
-- **VPS**: Use PM2 for process management
+# Deploy
+vercel
 
-## 🧪 Testing Setup
+# Set environment variables in Vercel dashboard
+# Enable MongoDB integration if using Atlas
+```
 
-Create test users and profiles:
+### Docker Deployment
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+### Manual Server Deployment
+```bash
+# Build for production
+npm run build
+
+# Start production server
+npm start
+
+# Use PM2 for process management
+npm install -g pm2
+pm2 start npm --name "medguard" -- start
+```
+
+## 🧪 Testing
 
 ```bash
-# Run the development server
-npm run dev
+# Run linting
+npm run lint
 
-# Create test accounts via the registration page
-# Test the QR code scanning flow
-# Verify SMS alerts (requires Twilio configuration)
+# Run type checking
+npx tsc --noEmit
+
+# Test database connection
+node test-db-connection.js
+
+# Test API endpoints
+curl http://localhost:3000/api/auth/me
 ```
 
-## 🔒 Security Considerations
+## 📊 Performance Optimization
 
-### Production Checklist
-- [ ] Strong JWT secrets (use `openssl rand -base64 32`)
-- [ ] HTTPS enabled with secure cookies
-- [ ] Rate limiting configured for all endpoints
-- [ ] Input validation on all forms
-- [ ] MongoDB indexes for performance
-- [ ] CORS properly configured
-- [ ] Content Security Policy headers
-- [ ] Regular security updates
+- **Static Generation** for emergency pages (ISR with 1-hour revalidation)
+- **Image Optimization** via Next.js built-in optimizer
+- **Code Splitting** with dynamic imports
+- **Bundle Analysis** with @next/bundle-analyzer
+- **Caching Strategy** for MongoDB connections
+- **Compression** via gzip/brotli
 
-### Privacy & Compliance
-- Medical information is stored securely
-- Public tokens prevent profile enumeration
-- Rate limiting prevents abuse
-- No sensitive data in logs
-- Consider HIPAA compliance requirements
+## 🚨 Emergency Response Integration
+
+### For First Responders
+- Instant access via QR code scan (no app installation required)
+- Critical medical information displayed prominently
+- Emergency contact numbers with one-tap calling
+- Location sharing for faster response times
+
+### For Healthcare Providers
+- Standardized medical information format
+- Allergy warnings prominently displayed
+- Current medications and dosages
+- Medical conditions and history
+- Emergency contact relationships
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make changes with proper TypeScript types
-4. Test thoroughly
-5. Submit a pull request
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
 
-## 📄 License
+## 📝 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-For emergency situations, this platform provides:
-- Instant access to medical information
-- Direct calling to emergency services
-- Automated alert system for emergency contacts
-- Geolocation sharing for faster response
+For emergency medical situations, always call your local emergency number (911 in the US).
 
-For technical support or questions about the platform, please create an issue in this repository.
+For technical support:
+- Create an issue in the GitHub repository
+- Check the troubleshooting section below
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**Database Connection Errors**
+```bash
+# Check MongoDB status
+systemctl status mongod  # Linux
+brew services list | grep mongodb  # macOS
+
+# Test connection
+node test-db-connection.js
+```
+
+**Twilio SMS Failures**
+- Verify account SID and auth token
+- Check phone number verification
+- Ensure sufficient Twilio credits
+- Verify recipient phone numbers are in E.164 format
+
+**QR Code Generation Issues**
+- Check if the domain is properly set in environment variables
+- Verify user has completed profile setup
+- Test QR code URL manually in browser
+
+**Authentication Problems**
+- Clear browser cookies and local storage
+- Check JWT secret is consistent across restarts
+- Verify token expiration times
 
 ---
 
-**⚠️ Important**: This platform is designed to assist in emergencies but should not replace professional medical advice or emergency services. Always call 911 or your local emergency number in life-threatening situations.
+**🛡️ MedGuard - Saving lives through instant access to critical medical information**

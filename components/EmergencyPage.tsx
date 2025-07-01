@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useLocation } from '@/hooks/useLocation';
+import AlertButton from '@/components/AlertButton';
 
 interface EmergencyContact {
   name: string;
@@ -25,171 +25,234 @@ interface EmergencyPageProps {
 }
 
 export default function EmergencyPage({ user }: EmergencyPageProps) {
-  const [alertLoading, setAlertLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertType, setAlertType] = useState<'success' | 'error' | null>(null);
-  
-  const {
-    getCurrentLocation,
-    loading: locationLoading,
-    error: locationError,
-  } = useLocation();
 
   const handleEmergencyCall = () => {
     window.location.href = 'tel:911';
   };
 
-  const handleSendAlert = async () => {
-    setAlertLoading(true);
-    setAlertMessage(null);
-    setAlertType(null);
-
-    try {
-      // Try to get current location
-      let location = null;
-      try {
-        location = await getCurrentLocation();
-      } catch (error) {
-        console.log('Could not get location:', error);
-        // Continue without location
-      }
-
-      // Send emergency alert
-      const response = await fetch('/api/alert', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          publicToken: user.publicToken,
-          location,
-          customMessage: 'Emergency alert triggered via QR code scan',
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setAlertType('success');
-        setAlertMessage(`✅ Emergency alerts sent to ${data.alertsSent} contacts!`);
-      } else {
-        setAlertType('error');
-        setAlertMessage(data.message || 'Failed to send emergency alerts');
-      }
-    } catch (error) {
-      console.error('Alert error:', error);
-      setAlertType('error');
-      setAlertMessage('Network error. Please try again or call 911 directly.');
-    } finally {
-      setAlertLoading(false);
-    }
+  const handleAlertResult = (success: boolean, message: string) => {
+    setAlertType(success ? 'success' : 'error');
+    setAlertMessage(message);
+    
+    // Auto-clear message after 5 seconds
+    setTimeout(() => {
+      setAlertMessage(null);
+      setAlertType(null);
+    }, 5000);
   };
 
   return (
-    <div className="min-h-screen bg-red-50 px-4 py-6">
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="text-6xl mb-2">🚨</div>
-          <h1 className="text-2xl font-bold text-red-800 mb-1">
-            EMERGENCY MEDICAL INFO
-          </h1>
-          <p className="text-red-600 text-sm">
-            Critical information for first responders
-          </p>
+    <div className="min-h-screen bg-red-50">
+      <div className="container-width py-8 space-y-8">
+        {/* Emergency Header */}
+        <div className="text-center space-y-6 animate-fadeIn">
+          <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
+            <span className="text-white text-5xl">🚨</span>
+          </div>
+          <div className="space-y-3">
+            <h1 className="text-3xl md:text-4xl font-bold text-red-800 tracking-tight">
+              EMERGENCY MEDICAL INFO
+            </h1>
+            <p className="text-lg text-red-600 font-medium">
+              Critical information for first responders
+            </p>
+          </div>
+        </div>
+
+        {/* Alert Message */}
+        {alertMessage && (
+          <div className={`card-emergency ${
+            alertType === 'success' 
+              ? 'bg-green-50 border-green-200' 
+              : 'bg-red-100 border-red-300'
+          } animate-slideIn`}>
+            <div className="text-center">
+              <div className={`text-lg font-semibold ${
+                alertType === 'success' ? 'text-green-800' : 'text-red-800'
+              }`}>
+                {alertMessage}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Emergency Actions */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Call 911 */}
+          <button
+            onClick={handleEmergencyCall}
+            className="card-emergency bg-red-600 hover:bg-red-700 text-white transform hover:scale-105 transition-all duration-200 group"
+          >
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-3xl">🚑</span>
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-bold">CALL 911</h2>
+                <p className="text-red-100">
+                  Immediate emergency services
+                </p>
+              </div>
+            </div>
+          </button>
+
+          {/* Send SOS Alert */}
+          <div className="card-emergency bg-orange-600 hover:bg-orange-700 text-white transform hover:scale-105 transition-all duration-200">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto">
+                <span className="text-3xl">📱</span>
+              </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold">SEND SOS ALERT</h2>
+                  <p className="text-orange-100">
+                    Alert emergency contacts with location
+                  </p>
+                </div>
+                <AlertButton
+                  publicToken={user.publicToken}
+                  variant="emergency"
+                  size="md"
+                  className="bg-white text-orange-600 hover:bg-gray-50"
+                  onAlertSent={handleAlertResult}
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Patient Information */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-            <span className="text-2xl mr-2">👤</span>
-            Patient Information
-          </h2>
+        <div className="card-emergency space-y-6">
+          <div className="border-b border-red-100 pb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <span className="text-3xl mr-3">👤</span>
+              Patient Information
+            </h2>
+          </div>
           
-          <div className="space-y-3">
-            <div>
-              <span className="font-semibold text-gray-700">Name:</span>
-              <span className="ml-2 text-lg">{user.name}</span>
-            </div>
-            
-            {user.bloodType && (
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="space-y-4">
               <div>
-                <span className="font-semibold text-gray-700">Blood Type:</span>
-                <span className="ml-2 text-lg font-bold text-red-600">
-                  {user.bloodType}
-                </span>
+                <label className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                  Full Name
+                </label>
+                <p className="text-2xl font-semibold text-gray-900 mt-1">{user.name}</p>
               </div>
-            )}
+              
+              {user.bloodType && (
+                <div>
+                  <label className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    Blood Type
+                  </label>
+                  <div className="flex items-center space-x-3 mt-1">
+                    <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">🩸</span>
+                    </div>
+                    <span className="text-3xl font-bold text-red-600">
+                      {user.bloodType}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Medical Information */}
         {(user.allergies.length > 0 || user.conditions.length > 0 || user.medications.length > 0) && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-              <span className="text-2xl mr-2">🏥</span>
-              Medical Information
-            </h2>
+          <div className="card-emergency space-y-8">
+            <div className="border-b border-red-100 pb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                <span className="text-3xl mr-3">🏥</span>
+                Medical Information
+              </h2>
+            </div>
 
-            {user.allergies.length > 0 && (
-              <div className="mb-4">
-                <h3 className="font-semibold text-red-700 mb-2">⚠️ ALLERGIES:</h3>
-                <div className="bg-red-100 p-3 rounded">
-                  {user.allergies.map((allergy, index) => (
-                    <div key={index} className="text-red-800 font-medium">
-                      • {allergy}
-                    </div>
-                  ))}
+            <div className="medical-info-grid space-y-8">
+              {user.allergies.length > 0 && (
+                <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6">
+                  <h3 className="text-xl font-bold text-red-800 mb-4 flex items-center">
+                    <span className="text-2xl mr-2">⚠️</span>
+                    CRITICAL ALLERGIES
+                  </h3>
+                  <div className="space-y-3">
+                    {user.allergies.map((allergy, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-red-600 rounded-full"></div>
+                        <span className="text-lg font-medium text-red-800">{allergy}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {user.conditions.length > 0 && (
-              <div className="mb-4">
-                <h3 className="font-semibold text-gray-700 mb-2">Medical Conditions:</h3>
-                <div className="bg-yellow-100 p-3 rounded">
-                  {user.conditions.map((condition, index) => (
-                    <div key={index} className="text-yellow-800">
-                      • {condition}
-                    </div>
-                  ))}
+              {user.conditions.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                  <h3 className="text-xl font-semibold text-yellow-800 mb-4 flex items-center">
+                    <span className="text-2xl mr-2">🔍</span>
+                    Medical Conditions
+                  </h3>
+                  <div className="space-y-3">
+                    {user.conditions.map((condition, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-yellow-600 rounded-full"></div>
+                        <span className="text-lg text-yellow-800">{condition}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {user.medications.length > 0 && (
-              <div>
-                <h3 className="font-semibold text-gray-700 mb-2">Current Medications:</h3>
-                <div className="bg-blue-100 p-3 rounded">
-                  {user.medications.map((medication, index) => (
-                    <div key={index} className="text-blue-800">
-                      • {medication}
-                    </div>
-                  ))}
+              {user.medications.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                  <h3 className="text-xl font-semibold text-blue-800 mb-4 flex items-center">
+                    <span className="text-2xl mr-2">💊</span>
+                    Current Medications
+                  </h3>
+                  <div className="space-y-3">
+                    {user.medications.map((medication, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                        <span className="text-lg text-blue-800">{medication}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 
         {/* Emergency Contacts */}
         {user.emergencyContacts.length > 0 && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-              <span className="text-2xl mr-2">📞</span>
-              Emergency Contacts
-            </h2>
+          <div className="card-emergency space-y-6">
+            <div className="border-b border-red-100 pb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                <span className="text-3xl mr-3">📞</span>
+                Emergency Contacts
+              </h2>
+            </div>
             
-            <div className="space-y-3">
+            <div className="grid md:grid-cols-2 gap-6">
               {user.emergencyContacts.map((contact, index) => (
-                <div key={index} className="bg-gray-50 p-3 rounded">
-                  <div className="font-semibold">{contact.name}</div>
-                  <div className="text-gray-600">{contact.relationship}</div>
+                <div key={index} className="bg-gray-50 rounded-xl p-6 space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                      <span className="text-gray-600 text-lg">👤</span>
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900">{contact.name}</h4>
+                      <p className="text-sm text-gray-600">{contact.relationship}</p>
+                    </div>
+                  </div>
                   <a 
                     href={`tel:${contact.phone}`}
-                    className="text-blue-600 font-medium hover:underline"
+                    className="btn-primary w-full justify-center group"
                   >
-                    {contact.phone}
+                    <span className="mr-2">📞</span>
+                    Call {contact.phone}
                   </a>
                 </div>
               ))}
@@ -197,62 +260,17 @@ export default function EmergencyPage({ user }: EmergencyPageProps) {
           </div>
         )}
 
-        {/* Alert Message */}
-        {alertMessage && (
-          <div className={`mb-6 p-4 rounded-lg ${
-            alertType === 'success' 
-              ? 'bg-green-100 text-green-800 border border-green-200' 
-              : 'bg-red-100 text-red-800 border border-red-200'
-          }`}>
-            {alertMessage}
-          </div>
-        )}
-
-        {/* Emergency Action Buttons */}
-        <div className="space-y-4">
-          {/* Call 911 Button */}
-          <button
-            onClick={handleEmergencyCall}
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-lg text-xl flex items-center justify-center space-x-2 transition-colors"
-          >
-            <span className="text-2xl">🚑</span>
-            <span>CALL 911</span>
-          </button>
-
-          {/* Send Alert Button */}
-          <button
-            onClick={handleSendAlert}
-            disabled={alertLoading}
-            className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white font-bold py-4 px-6 rounded-lg text-xl flex items-center justify-center space-x-2 transition-colors"
-          >
-            {alertLoading ? (
-              <>
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                <span>Sending Alert...</span>
-              </>
-            ) : (
-              <>
-                <span className="text-2xl">📱</span>
-                <span>SEND SOS ALERT</span>
-              </>
-            )}
-          </button>
-
-          {locationError && (
-            <p className="text-yellow-700 text-sm text-center">
-              ⚠️ Location not available. Alert will be sent without location.
-            </p>
-          )}
-        </div>
-
         {/* Footer */}
-        <div className="mt-8 text-center text-gray-500 text-sm">
-          <div className="mb-2">
-            🛡️ Powered by MedGuard Emergency Platform
+        <div className="text-center space-y-4 py-8">
+          <div className="inline-flex items-center space-x-3 bg-white rounded-full px-6 py-3 shadow-soft">
+            <div className="w-6 h-6 bg-red-600 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm">🛡️</span>
+            </div>
+            <span className="font-semibold text-gray-900">Powered by MedGuard</span>
           </div>
-          <div>
-            No login required in emergencies
-          </div>
+          <p className="text-sm text-gray-600">
+            No login required in emergencies • Instant medical access
+          </p>
         </div>
       </div>
     </div>
