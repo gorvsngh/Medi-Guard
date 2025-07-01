@@ -23,12 +23,13 @@ export default function DashboardPage() {
   const { user: authUser, loading, logout, refreshUser } = useAuth();
   const user = authUser as ExtendedUser | null;
   const [isContactsModalOpen, setIsContactsModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !isLoggingOut) {
       window.location.href = '/login';
     }
-  }, [user, loading]);
+  }, [user, loading, isLoggingOut]);
 
   // Refresh user data when component mounts to get latest emergency contacts
   useEffect(() => {
@@ -53,6 +54,7 @@ export default function DashboardPage() {
   }
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     await logout();
   };
 

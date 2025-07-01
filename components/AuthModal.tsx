@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -16,18 +17,42 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
     password: '',
     confirmPassword: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  const { login, register } = useAuth();
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', { mode, formData });
-    // After successful auth, redirect to appropriate page
-    if (mode === 'register') {
-      window.location.href = '/profile'; // Redirect to profile for setup
-    } else {
-      window.location.href = '/dashboard'; // Redirect to dashboard
+    setLoading(true);
+    setError('');
+
+    try {
+      let result;
+      
+      if (mode === 'register') {
+        result = await register({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          confirmPassword: formData.confirmPassword
+        });
+      } else {
+        result = await login(formData.email, formData.password);
+      }
+
+      if (result.success) {
+        handleClose(); // Close modal on success
+        // Navigation is handled by useAuth hooks
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,12 +63,35 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
     });
   };
 
+  const switchMode = (newMode: 'login' | 'register') => {
+    setMode(newMode);
+    setError(''); // Clear error when switching modes
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    });
+  };
+
+  const handleClose = () => {
+    setError(''); // Clear error when closing
+    setLoading(false); // Stop loading state
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    });
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
-        onClick={onClose}
+        onClick={handleClose}
       ></div>
       
       {/* Modal */}
@@ -51,7 +99,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
         <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all">
           {/* Close Button */}
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,12 +178,27 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
               </div>
             )}
 
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white py-3 px-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-red-500 to-orange-500 text-white py-3 px-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {mode === 'login' ? 'Sign In' : 'Create Account'} →
+              {loading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>{mode === 'login' ? 'Signing In...' : 'Creating Account...'}</span>
+                </div>
+              ) : (
+                `${mode === 'login' ? 'Sign In' : 'Create Account'} →`
+              )}
             </button>
 
             {/* Mode Switch */}
@@ -144,7 +207,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login' }: Au
                 {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
                 <button
                   type="button"
-                  onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+                  onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}
                   className="ml-2 text-red-600 font-medium hover:text-red-700 transition-colors"
                 >
                   {mode === 'login' ? 'Create Account' : 'Sign In'}

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import AuthModal from '@/components/AuthModal';
 
 // Data structures for reusable content
@@ -35,6 +36,17 @@ const testimonials = [
 
 export default function HomePage() {
   const [authModal, setAuthModal] = useState({ isOpen: false, mode: 'login' as 'login' | 'register' });
+  const searchParams = useSearchParams();
+
+  // Auto-open login modal if showLogin=true in URL (after logout)
+  useEffect(() => {
+    const showLogin = searchParams.get('showLogin');
+    if (showLogin === 'true') {
+      setAuthModal({ isOpen: true, mode: 'login' });
+      // Clean up the URL parameter
+      window.history.replaceState({}, '', '/');
+    }
+  }, [searchParams]);
 
   const openAuthModal = (mode: 'login' | 'register') => {
     setAuthModal({ isOpen: true, mode });
@@ -108,7 +120,10 @@ export default function HomePage() {
                         {Array.from({ length: 64 }, (_, i) => (
                           <div 
                             key={i} 
-                            className={`w-2 h-2 rounded-sm ${Math.random() > 0.6 ? 'bg-gray-900' : 'bg-white'}`}
+                            className={`w-2 h-2 rounded-sm ${
+                              // Deterministic pattern for QR code demo
+                              (i + Math.floor(i / 8)) % 3 === 0 ? 'bg-gray-900' : 'bg-white'
+                            }`}
                           />
                         ))}
                       </div>
@@ -295,7 +310,10 @@ export default function HomePage() {
                               <div className="w-20 h-20 bg-white rounded-lg p-2">
                                 <div className="grid grid-cols-6 gap-1">
                                   {Array.from({ length: 36 }, (_, i) => (
-                                    <div key={i} className={`w-1 h-1 ${Math.random() > 0.5 ? 'bg-gray-900' : 'bg-white'} transition-all duration-1000`} />
+                                    <div key={i} className={`w-1 h-1 ${
+                                      // Deterministic pattern for smaller QR demo
+                                      (i * 3 + Math.floor(i / 6)) % 4 < 2 ? 'bg-gray-900' : 'bg-white'
+                                    } transition-all duration-1000`} />
                                   ))}
                                 </div>
                               </div>

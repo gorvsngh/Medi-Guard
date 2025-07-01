@@ -22,6 +22,7 @@ export default function QRCodePage() {
   
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [downloadMessage, setDownloadMessage] = useState<string>('');
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Generate QR code URL
   useEffect(() => {
@@ -58,10 +59,10 @@ export default function QRCodePage() {
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !isLoggingOut) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isLoggingOut]);
 
   const showMessage = (message: string, type: 'success' | 'error' = 'success') => {
     setDownloadMessage(`${type === 'success' ? '✅' : '❌'} ${message}`);

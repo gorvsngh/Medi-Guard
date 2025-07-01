@@ -133,7 +133,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
-      router.push('/');
+      // Redirect to landing page with login modal trigger
+      router.push('/?showLogin=true');
     }
   };
 
@@ -165,16 +166,4 @@ export function useAuth() {
   return context;
 }
 
-// Hook for protected pages
-export function useRequireAuth() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
-
-  return { user, loading };
-} 
+// Note: Individual pages now handle their own auth redirects to prevent logout conflicts 

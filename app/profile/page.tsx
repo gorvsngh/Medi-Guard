@@ -32,6 +32,7 @@ export default function ProfilePage() {
   const user = authUser as ExtendedUser | null;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -51,10 +52,10 @@ export default function ProfilePage() {
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !isLoggingOut) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isLoggingOut]);
 
   // Populate form with user data
   useEffect(() => {
